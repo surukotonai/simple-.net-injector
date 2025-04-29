@@ -14,118 +14,95 @@ using System.Text.Json;
 
 namespace no_skid_injector_xd
 {
-
     public partial class main : Form
     {
-      
         private string selectedDllPath = string.Empty;
 
         public class AppConfig
         {
             public string ProcessName { get; set; }
             public string DllPath { get; set; }
-
         }
+
         public main()
         {
-
             InitializeComponent();
-
             LoadConfig();
-
             this.button1.Click += new System.EventHandler(this.buttonInject_Click);
         }
 
-
         private void main_Load(object sender, EventArgs e)
         {
-         //   if (this.labelSelectedDll != null)
-          //  {
-           //     this.labelSelectedDll.Text = "DLL 未選択";
-            //}
-
+            // if (this.labelSelectedDll != null)
+            // {
+            //     this.labelSelectedDll.Text = "DLL not selected";
+            // }
         }
+
         private void main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SaveConfig(); 
+            SaveConfig();
         }
+
         private void SaveConfig()
         {
-
             string configFilePath = Path.Combine(Application.StartupPath, "config.json");
-
             try
             {
-
                 AppConfig config = new AppConfig
                 {
-
                     ProcessName = this.textBoxProcessName?.Text ?? "",
                     DllPath = this.selectedDllPath ?? ""
                 };
 
-
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 string jsonString = JsonSerializer.Serialize(config, options);
-
-
                 File.WriteAllText(configFilePath, jsonString);
             }
             catch (Exception ex)
             {
-
-                Console.Error.WriteLine($"nigash error: {ex.Message}");
-
+                Console.Error.WriteLine($"Error saving config: {ex.Message}");
             }
         }
+
         private void LoadConfig()
         {
-
             string configFilePath = Path.Combine(Application.StartupPath, "config.json");
-
 
             if (File.Exists(configFilePath))
             {
                 try
                 {
-
                     string jsonString = File.ReadAllText(configFilePath);
-
                     AppConfig config = JsonSerializer.Deserialize<AppConfig>(jsonString);
-
 
                     if (config != null)
                     {
                         if (this.textBoxProcessName != null)
                         {
-                            this.textBoxProcessName.Text = config.ProcessName ?? ""; // onull check
+                            this.textBoxProcessName.Text = config.ProcessName ?? "";
                         }
-                        this.selectedDllPath = config.DllPath ?? ""; // onull check x2
+                        this.selectedDllPath = config.DllPath ?? "";
                         if (this.labelSelectedDll != null)
                         {
-                            // 
                             this.labelSelectedDll.Text = !string.IsNullOrEmpty(this.selectedDllPath)
-                                                        ? Path.GetFileName(this.selectedDllPath)
-                                                        : "DLL 未選択";
+                                ? Path.GetFileName(this.selectedDllPath)
+                                : "DLL not selected";
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-
-                    MessageBox.Show($"config faild: {ex.Message}",
-                                    "", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-      
-                    if (this.labelSelectedDll != null) { this.labelSelectedDll.Text = "DLL 未選択"; }
+                    MessageBox.Show($"Failed to load config: {ex.Message}",
+                                    "Config Load Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (this.labelSelectedDll != null) { this.labelSelectedDll.Text = "DLL not selected"; }
                     if (this.textBoxProcessName != null) { this.textBoxProcessName.Text = ""; }
                     this.selectedDllPath = "";
                 }
             }
             else
             {
-
-                if (this.labelSelectedDll != null) { this.labelSelectedDll.Text = "DLL 未選択"; }
-
+                if (this.labelSelectedDll != null) { this.labelSelectedDll.Text = "DLL not selected"; }
             }
         }
 
@@ -134,19 +111,17 @@ namespace no_skid_injector_xd
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = "c:\\";
-                openFileDialog.Filter = "DLL ファイル (*.dll)|*.dll";
+                openFileDialog.Filter = "DLL Files (*.dll)|*.dll";
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
-                openFileDialog.Title = "注入するDLLファイルを選択";
+                openFileDialog.Title = "Select DLL File to Inject";
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
-               
                         selectedDllPath = openFileDialog.FileName;
 
-                        
                         if (this.labelSelectedDll != null)
                         {
                             this.labelSelectedDll.Text = Path.GetFileName(selectedDllPath);
@@ -154,40 +129,38 @@ namespace no_skid_injector_xd
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("file select error" + ex.Message, "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error selecting file: " + ex.Message, "File Selection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         selectedDllPath = string.Empty;
                         if (this.labelSelectedDll != null)
                         {
-                            this.labelSelectedDll.Text = "error";
+                            this.labelSelectedDll.Text = "Error selecting file";
                         }
                     }
                 }
             }
         }
 
-
         private void buttonInject_Click(object sender, EventArgs e)
         {
-
             if (string.IsNullOrEmpty(selectedDllPath))
             {
-                MessageBox.Show("fist dll select pls pls pls。", "error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select a DLL file first.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (this.textBoxProcessName == null)
             {
-                MessageBox.Show("wtf デザイナで textBoxProcessName を追加してください", "内部error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            string processName = this.textBoxProcessName.Text.Trim();
-            if (string.IsNullOrEmpty(processName))
-            {
-                MessageBox.Show("プロセス名入れろよ..。", "error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Process name text box is missing.", "Internal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            // remove prossses sssssssssss exe
+            string processName = this.textBoxProcessName.Text.Trim();
+            if (string.IsNullOrEmpty(processName))
+            {
+                MessageBox.Show("Please enter the process name.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             {
                 processName = processName.Substring(0, processName.Length - 4);
@@ -199,54 +172,51 @@ namespace no_skid_injector_xd
                 processes = Process.GetProcessesByName(processName);
                 if (processes.Length == 0)
                 {
-                    MessageBox.Show($"プロセスないね障害すぎ '{this.textBoxProcessName.Text}'", "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Process '{this.textBoxProcessName.Text}' not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 if (processes.Length > 1)
                 {
-                    MessageBox.Show($"waraing multi target '{processes[0].ProcessName}'. first target use (PID: {processes[0].Id})", "警告", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                    MessageBox.Show($"Warning: Multiple processes found for '{processes[0].ProcessName}'. Injecting into the first one found (PID: {processes[0].Id}).",
+                                    "Multiple Processes Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 int targetProcessId = processes[0].Id;
                 string targetProcessNameActual = processes[0].ProcessName;
 
-
                 bool success = DllInjector.InjectDll(targetProcessId, selectedDllPath);
 
                 if (success)
                 {
-                    MessageBox.Show($"success injection\nDLL: {Path.GetFileName(selectedDllPath)}\nProcess: {targetProcessNameActual} (PID: {targetProcessId})", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Successfully injected\nDLL: {Path.GetFileName(selectedDllPath)}\nProcess: {targetProcessNameActual} (PID: {targetProcessId})",
+                                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-
-                    MessageBox.Show($"faild injection. Check console output or permissions / bitness.", "失敗", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Failed to inject DLL. Check console output, permissions, or process/DLL bitness mismatch.",
+                                    "Injection Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                MessageBox.Show($"nigash inject error : {ex.Message}", "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An error occurred during injection: {ex.Message}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                // プロセスハンドルの解放
                 if (processes != null)
                 {
                     foreach (var process in processes)
                     {
-                        process.Close(); // or process.Dispose();
+                        process.Close();
                     }
                 }
             }
         }
     }
 
-
     public class DllInjector
     {
-        // Windows API Constants
         const uint PROCESS_CREATE_THREAD = 0x0002;
         const uint PROCESS_QUERY_INFORMATION = 0x0400;
         const uint PROCESS_VM_OPERATION = 0x0008;
@@ -257,26 +227,25 @@ namespace no_skid_injector_xd
         const uint MEM_RESERVE = 0x00002000;
         const uint MEM_RELEASE = 0x00008000;
 
-        const uint PAGE_READWRITE = 0x04; 
+        const uint PAGE_READWRITE = 0x04;
 
-        // Windows API Functions (P/Invoke)
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr OpenProcess(
             uint dwDesiredAccess,
             [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle,
             int dwProcessId);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)] 
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)] //only asic idk 
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern IntPtr VirtualAllocEx(
             IntPtr hProcess,
             IntPtr lpAddress,
-            IntPtr dwSize, // 64 + 32
+            IntPtr dwSize,
             uint flAllocationType,
             uint flProtect);
 
@@ -286,16 +255,16 @@ namespace no_skid_injector_xd
             IntPtr hProcess,
             IntPtr lpBaseAddress,
             byte[] lpBuffer,
-            IntPtr nSize, //64 + 32
-            out IntPtr lpNumberOfBytesWritten); 
+            IntPtr nSize,
+            out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr CreateRemoteThread(
             IntPtr hProcess,
             IntPtr lpThreadAttributes,
             uint dwStackSize,
-            IntPtr lpStartAddress, // start adreeees
-            IntPtr lpParameter,    
+            IntPtr lpStartAddress,
+            IntPtr lpParameter,
             uint dwCreationFlags,
             out IntPtr lpThreadId);
 
@@ -304,60 +273,55 @@ namespace no_skid_injector_xd
         static extern bool VirtualFreeEx(
             IntPtr hProcess,
             IntPtr lpAddress,
-            IntPtr dwSize,     
-            uint dwFreeType);  // MEM_RELEASE
+            IntPtr dwSize,
+            uint dwFreeType);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseHandle(IntPtr hObject); // close hand
+        static extern bool CloseHandle(IntPtr hObject);
 
 
         public static bool InjectDll(int processId, string dllPath)
         {
-            IntPtr hProcess = IntPtr.Zero;  
-            IntPtr pDllPath = IntPtr.Zero;  
-            IntPtr hThread = IntPtr.Zero;    
-            IntPtr bytesWritten;             // WriteProcessMemory wi
+            IntPtr hProcess = IntPtr.Zero;
+            IntPtr pDllPath = IntPtr.Zero;
+            IntPtr hThread = IntPtr.Zero;
+            IntPtr bytesWritten;
 
             try
             {
-                // 0. DLLファイルの存在確認
                 if (!File.Exists(dllPath))
                 {
                     Console.Error.WriteLine($"Inject Error: DLL not found at '{dllPath}'");
-
-                    MessageBox.Show($"DLLファイルが見つかりません。\nパス: {dllPath}", "インジェクションerror", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"DLL file not found.\nPath: {dllPath}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
-
                 hProcess = OpenProcess(
                     PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
-                    false, 
+                    false,
                     processId);
 
                 if (hProcess == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
                     Console.Error.WriteLine($"Inject Error: Could not open process (ID: {processId}). Error code: {error}");
-                    MessageBox.Show($"プロセスを開けませんでした (PID: {processId})。\nerrorコード: {error}\n管理者権限で実行しているか、プロセスが存在するか確認してください。", "インジェクションerror", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Could not open process (PID: {processId}).\nError code: {error}\nEnsure the injector is run with administrator privileges and the target process exists.",
+                                    "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
-                // LoadLibraryW 
                 IntPtr kernel32Handle = GetModuleHandle("kernel32.dll");
-
-                IntPtr loadLibraryAddr = GetProcAddress(kernel32Handle, "LoadLibraryW"); 
+                IntPtr loadLibraryAddr = GetProcAddress(kernel32Handle, "LoadLibraryW");
                 if (loadLibraryAddr == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
                     Console.Error.WriteLine($"Inject Error: Could not find LoadLibraryW function. Error code: {error}");
-                    MessageBox.Show($"Inject Error: Could not find LoadLibraryW function. Error code: {error}", "injection error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false; // finally で hProcess は解放される
+                    MessageBox.Show($"Could not find the LoadLibraryW function. Error code: {error}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
                 }
 
-
-                byte[] dllPathBytes = Encoding.Unicode.GetBytes(dllPath + "\0"); // Null Unicode
+                byte[] dllPathBytes = Encoding.Unicode.GetBytes(dllPath + "\0");
                 IntPtr dllPathSize = new IntPtr(dllPathBytes.Length);
 
                 pDllPath = VirtualAllocEx(hProcess, IntPtr.Zero, dllPathSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -365,55 +329,57 @@ namespace no_skid_injector_xd
                 {
                     int error = Marshal.GetLastWin32Error();
                     Console.Error.WriteLine($"Inject Error: Could not allocate memory in target process. Error code: {error}");
-                    MessageBox.Show($"Inject Error: Could not allocate memory in target process. Error code: {error}", "injection error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Could not allocate memory in the target process. Error code: {error}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
-                // DLL pass
                 if (!WriteProcessMemory(hProcess, pDllPath, dllPathBytes, dllPathSize, out bytesWritten) || bytesWritten != dllPathSize)
                 {
                     int error = Marshal.GetLastWin32Error();
                     Console.Error.WriteLine($"Inject Error: Could not write DLL path to target process memory. Error code: {error}");
-                    MessageBox.Show($"Inject Error: Could not write DLL path to target process memory. Error code: {error}", "injection error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                    VirtualFreeEx(hProcess, pDllPath, IntPtr.Zero, MEM_RELEASE); 
+                    MessageBox.Show($"Could not write the DLL path to the target process's memory. Error code: {error}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    VirtualFreeEx(hProcess, pDllPath, IntPtr.Zero, MEM_RELEASE);
+                    pDllPath = IntPtr.Zero;
                     return false;
                 }
 
-                // make remote sw
-                IntPtr threadId; 
+                IntPtr threadId;
                 hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLibraryAddr, pDllPath, 0, out threadId);
                 if (hThread == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
                     Console.Error.WriteLine($"Inject Error: Could not create remote thread. Error code: {error}");
-                    MessageBox.Show($"Inject Error: Could not create remote thread. Error code: {error}", "injection error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+                    MessageBox.Show($"Could not create the remote thread. Error code: {error}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     VirtualFreeEx(hProcess, pDllPath, IntPtr.Zero, MEM_RELEASE);
+                    pDllPath = IntPtr.Zero;
                     return false;
                 }
 
                 Console.WriteLine($"Successfully created remote thread (ID: {threadId}) to load DLL in process {processId}.");
 
-                return true; 
+                return true;
 
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"An unexpected error occurred during injection: {ex.Message}");
-                MessageBox.Show($"An unexpected error occurred during injection:\n{ex.Message}", "injection error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An unexpected error occurred during injection:\n{ex.Message}", "Injection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             finally
             {
-
                 if (hThread != IntPtr.Zero)
                 {
-                    CloseHandle(hThread); // sws
+                    CloseHandle(hThread);
                 }
+                // Consider waiting on hThread before freeing pDllPath for more robustness.
+                // if (pDllPath != IntPtr.Zero)
+                // {
+                //     VirtualFreeEx(hProcess, pDllPath, IntPtr.Zero, MEM_RELEASE);
+                // }
                 if (hProcess != IntPtr.Zero)
                 {
-                    CloseHandle(hProcess); // prs
+                    CloseHandle(hProcess);
                 }
             }
         }
