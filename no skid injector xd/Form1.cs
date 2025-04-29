@@ -148,11 +148,7 @@ namespace no_skid_injector_xd
                 return;
             }
 
-            if (this.textBoxProcessName == null)
-            {
-                MessageBox.Show("Process name text box is missing.", "Internal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+
 
             string processName = this.textBoxProcessName.Text.Trim();
             if (string.IsNullOrEmpty(processName))
@@ -172,7 +168,7 @@ namespace no_skid_injector_xd
                 processes = Process.GetProcessesByName(processName);
                 if (processes.Length == 0)
                 {
-                    MessageBox.Show($"Process '{this.textBoxProcessName.Text}' not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"プロセスねーぞ障害かよマジでえぐすぎ脳溶けすぎやばにが障害じゃんにがー", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
